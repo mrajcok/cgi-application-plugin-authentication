@@ -29,15 +29,23 @@ sub import {
 use Attribute::Handlers;
 my %RUNMODES;
 
-sub CGI::Application::RequireAuthentication : ATTR(CODE) {
-    my ( $package, $symbol, $referent, $attr, $data, $phase ) = @_;
-    $RUNMODES{$referent} = $data || 1;
-}
-sub CGI::Application::Authen : ATTR(CODE) {
+# Run this handler twice:
+# in CHECK (default) when we have the $symbol name, and also in BEGIN
+# because CHECK does not work in mod_perl, starman, etc. but BEGIN does.
+# Note that $symbol is set to 'ANON' under mod_perl, starman in BEGIN phase.
+sub CGI::Application::RequireAuthentication : ATTR(CODE,BEGIN,CHECK) {
     my ( $package, $symbol, $referent, $attr, $data, $phase ) = @_;
     $RUNMODES{$referent} = $data || 1;
 }
 
+# Run this handler twice:
+# in CHECK (default) when we have the $symbol name, and also in BEGIN
+# because CHECK does not work in mod_perl, starman, etc. but BEGIN does.
+# Note that $symbol is set to 'ANON' under mod_perl, starman in BEGIN phase.
+sub CGI::Application::Authen : ATTR(CODE,BEGIN,CHECK) {
+    my ( $package, $symbol, $referent, $attr, $data, $phase ) = @_;
+    $RUNMODES{$referent} = $data || 1;
+}
 
 =head1 NAME
 
@@ -1886,7 +1894,7 @@ to avoid duplicated efforts, send me a note, and I'll let you know of anyone els
 
 =item build more Drivers (Class::DBI, LDAP, Radius, etc...)
 
-=item Add support for method attributes to identify runmodes that require authentication
+=item Add documentation for method attributes to identify runmodes that require authentication
 
 =item finish the test suite
 
